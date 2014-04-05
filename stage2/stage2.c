@@ -22,10 +22,18 @@
 
 grub_jmp_buf restart_env;
 
-#if defined(PRESET_MENU_STRING) || defined(SUPPORT_DISKLESS)
+#if defined(PRESET_MENU_STRING) && defined(PRESET_MENU_EXTERNAL)
+#error Defining both PRESET_MENU_STRING and PRESET_MENU_EXTERNAL does not \
+       make sense. Please only define one.
+#endif
+
+#if defined(PRESET_MENU_STRING) || defined(SUPPORT_DISKLESS) || \
+    defined(PRESET_MENU_EXTERNAL)
 
 # if defined(PRESET_MENU_STRING)
 static const char *preset_menu = PRESET_MENU_STRING;
+# elif defined(PRESET_MENU_EXTERNAL)
+extern const char *preset_menu;
 # elif defined(SUPPORT_DISKLESS)
 /* Execute the command "bootp" automatically.  */
 static const char *preset_menu = "bootp\n";

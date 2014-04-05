@@ -18,7 +18,7 @@ Author: Martin Renters.
 
 3c509 support added by Serge Babkin (babkin@hq.icb.chel.su)
 
-$Id$
+$Id: 3c509.c,v 1.4 2002/01/02 21:56:40 okuji Exp $
 
 ***************************************************************************/
 

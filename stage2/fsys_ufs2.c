@@ -51,7 +51,7 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id$
+ *	$Id: fsys_ufs2.c,v 1.2 2004/06/19 12:17:52 okuji Exp $
  */
 
 #ifdef FSYS_UFS2

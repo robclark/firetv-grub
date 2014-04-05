@@ -65,6 +65,8 @@ int fallback_entries[MAX_FALLBACK_ENTRIES];
 int current_entryno;
 /* The address for Multiboot command-line buffer.  */
 static char *mb_cmdline;
+/* Whether or not the user loaded a custom command line */
+static unsigned char cmdline_loaded = 0;
 /* The password.  */
 char *password;
 /* The password type.  */
@@ -2368,32 +2370,44 @@ kernel_func (char *arg, int flags)
       /* If the `--no-mem-option' is specified, don't pass a Linux's mem
 	 option automatically. If the kernel is another type, this flag
 	 has no effect.  */
-      else if (grub_memcmp (arg, "--no-mem-option", 15) == 0)
-	load_flags |= KERNEL_LOAD_NO_MEM_OPTION;
+    else if (grub_memcmp (arg, "--no-mem-option", 15) == 0)
+        load_flags |= KERNEL_LOAD_NO_MEM_OPTION;
+    else if (grub_memcmp(arg, "--use-cmd-line", 14) == 0) {
+        if (!cmdline_loaded) {
+            errnum = ERR_BAD_ARGUMENT;
+            return 1;
+        }
+    }
       else
 	break;
 
       /* Try the next.  */
       arg = skip_to (0, arg);
     }
-      
-  len = grub_strlen (arg);
 
-  /* Reset MB_CMDLINE.  */
-  mb_cmdline = (char *) MB_CMDLINE_BUF;
-  if (len + 1 > MB_CMDLINE_BUFLEN)
-    {
-      errnum = ERR_WONT_FIT;
-      return 1;
-    }
+  if (!cmdline_loaded) {
+    len = grub_strlen (arg);
+
+    /* Reset MB_CMDLINE.  */
+    mb_cmdline = (char *) MB_CMDLINE_BUF;
+    if (len + 1 > MB_CMDLINE_BUFLEN)
+      {
+        errnum = ERR_WONT_FIT;
+        return 1;
+      }
+    grub_memmove (mb_cmdline, arg, len + 1);
+  } else {
+    len = grub_strlen(mb_cmdline);
+  }
+
 
   /* Copy the command-line to MB_CMDLINE.  */
-  grub_memmove (mb_cmdline, arg, len + 1);
   kernel_type = load_image (arg, mb_cmdline, suggested_type, load_flags);
   if (kernel_type == KERNEL_TYPE_NONE)
     return 1;
 
   mb_cmdline += len + 1;
+
   return 0;
 }
 
@@ -2402,14 +2416,54 @@ static struct builtin builtin_kernel =
   "kernel",
   kernel_func,
   BUILTIN_CMDLINE | BUILTIN_HELP_LIST,
-  "kernel [--no-mem-option] [--type=TYPE] FILE [ARG ...]",
+  "kernel [--no-mem-option] [--type=TYPE] [--use-cmd-line] FILE [ARG ...]",
   "Attempt to load the primary boot image from FILE. The rest of the"
   " line is passed verbatim as the \"kernel command line\".  Any modules"
   " must be reloaded after using this command. The option --type is used"
   " to suggest what type of kernel to be loaded. TYPE must be either of"
   " \"netbsd\", \"freebsd\", \"openbsd\", \"linux\", \"biglinux\" and"
   " \"multiboot\". The option --no-mem-option tells GRUB not to pass a"
-  " Linux's mem option automatically."
+  " Linux's mem option automatically. If the option --use-cmd-line is"
+  " provided, then GRUB ignores the rest of the line, and instead passes"
+  " the command line loaded with \"cmdline\" command to the kernel."
+};
+
+
+/* cmdline */
+static int
+cmdline_func (char *arg, int flags)
+{
+  int len;
+
+  if (!grub_open(arg))
+    return 1;
+
+  if (filemax > MB_CMDLINE_BUFLEN) {
+      grub_close();
+      errnum = ERR_WONT_FIT;
+      return 1;
+  }
+
+  if (!(len = grub_read (mb_cmdline, MB_CMDLINE_BUFLEN - 1))) {
+      grub_close();
+      return 1;
+  }
+
+  grub_close();
+
+  mb_cmdline[len] = 0;
+  grub_printf("Loaded kernel cmdline args: %s\n", mb_cmdline);
+  cmdline_loaded = 1;
+  return 0;
+}
+
+static struct builtin builtin_cmdline =
+{
+  "cmdline",
+  cmdline_func,
+  BUILTIN_CMDLINE | BUILTIN_HELP_LIST,
+  "cmdline FILE",
+  "Attempt to load a file that contains the default kernel command line."
 };
 
 
@@ -4802,6 +4856,7 @@ struct builtin *builtin_table[] =
 #endif /* SUPPORT_NETBOOT */
   &builtin_cat,
   &builtin_chainloader,
+  &builtin_cmdline,
   &builtin_cmp,
   &builtin_color,
   &builtin_configfile,

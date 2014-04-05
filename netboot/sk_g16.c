@@ -13,12 +13,12 @@ Changes to make it work with Etherboot by Georg Baum <Georg.Baum@gmx.de>
  *
  * Module         : sk_g16.c
  *
- * Version        : $Revision$
+ * Version        : $Revision: 1.4 $
  *
  * Author         : Patrick J.D. Weichmann
  *
  * Date Created   : 94/05/26
- * Last Updated   : $Date$
+ * Last Updated   : $Date: 2002/01/02 21:56:40 $
  *
  * Description    : Schneider & Koch G16 Ethernet Device Driver for
  *                  Linux Kernel >= 1.1.22

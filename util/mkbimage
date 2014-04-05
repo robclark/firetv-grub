@@ -19,7 +19,7 @@
 # program's maintainer or write to: The Free Software Foundation,
 # Inc.; 59 Temple Place, Suite 330; Boston, MA 02111-1307, USA.
 
-# $Id$
+# $Id: mkbimage,v 1.19 2004/07/21 14:43:04 robertmh Exp $
 
 # Global variables
 tarfile=
@@ -58,7 +58,7 @@ stage2_os_name=
 
 # Name by which this script was invoked.
 program=`echo "$0" | sed -e 's/[^\/]*\///g'`
-version_number='$Revision$'
+version_number='$Revision: 1.19 $'
 
 usage="
 Usage: $program [-hVF] [-t TYPE] [-d DIRECTORY] [-s FS_TYPE] -f TAR_FILE
